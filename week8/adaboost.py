@@ -39,10 +39,22 @@ class AdaBoostClassifier():
         tmp = self.weak_learner()
         tmp.fit(X, y, p)
         """  
-        w = np.ones(X.shape[0])/X.shape[0]
+        w = np.ones(X.shape[0])/X.shape[0]    # weights, in slides they are called D
         scores = []
         exp_losses = []
         ### YOUR CODE HERE 
+        for i in range(self.n_estimators):
+            tmp = self.weak_learner()
+            tmp.fit(X, y, w)
+            self.models.append(tmp)
+            pred = tmp.predict(X)
+            err = np.sum(w * (pred != y))
+            alpha = 0.5 * np.log((1 - err) / err)
+            self.alphas.append(alpha)
+            w = w * np.exp(-alpha * y * pred)
+            w = w / np.sum(w)
+            scores.append(self.score(X, y))
+            exp_losses.append(np.exp(-2 * np.sum(self.alphas * self.ensemble_output(X) * y)))
         ### END CODE
 
         # remember to ensure that self.models and self.alphas are filled
